@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
 import os.path
 from pathlib import Path
-import pydotplus
 from graphviz import Digraph
 
 globalPath = 'd:\\Projects\\Scripts\\XMLFlow\\test_env'
