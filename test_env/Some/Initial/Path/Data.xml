@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Data>
+  <!-- Dependencies -->
+  <Dependency name="Some\Path\To" />
+  <Dependency name="Another\Path\To" />
+  <Dependency name="Yet\Another\Path\To" />
+  <!-- Resources -->
+  <Resource name="ItemA" />
+  <Resource name="ItemB" />
+</Data>
