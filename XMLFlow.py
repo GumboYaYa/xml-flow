@@ -2,16 +2,15 @@ import xml.etree.ElementTree as ET
 import os.path
 from pathlib import Path
 import pydotplus
+from graphviz import Digraph
 
-globalPath = 'd:\\Projects\\Scripts\\XMLParser'
+globalPath = 'd:\\Projects\\Scripts\\XMLFlow\\test_env'
 iterPath = 'Some\\Initial\\Path'
 xmlFileName = 'Data.xml'
 dotFileName = 'xml.dot'
 resourceList = []
 
-graph = pydotplus.Dot(graph_type='digraph', strict=False)
-graph.set_graphviz_executables(
-    {'dot': 'c:\\Program Files (x86)\\Graphviz2.38\\bin\\dot.exe'})
+dot = Digraph(name=iterPath)
 tree = ET.parse(os.path.join(globalPath, iterPath, xmlFileName))
 
 
@@ -19,6 +18,8 @@ def pathFinder(root):
 
     for child in root.iter('Resource'):
         print(child.attrib)
+        # TODO: Address the value instead of the tuple
+        # dot.node(child.attrib)
         resourceList.append(child.attrib)
 
     for child in root.iter('Dependency'):
@@ -48,13 +49,10 @@ def pathFinder(root):
 
 
 if __name__ == '__main__':
-    graph.add_node(pydotplus.Node(iterPath))  # Create root node
+    dot.node(iterPath)  # Create root node
     root = tree.getroot()
 
     pathFinder(root)  # Initialize crawler
 
-    # Write file
-    gWrite = graph.write_dot(os.path.join(globalPath, dotFileName))
-    gCreate = graph.create(prog='dot', format='dot')
-    if gWrite:
-        print('-- ' + dotFileName + ' written successfully!')
+    print(dot.source)
+    dot.render('xmlgraph.gv', view=True)
