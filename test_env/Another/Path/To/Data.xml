@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Data>
-  <!-- Dependencies -->
-  <Dependency name="Some\Path\To\Heaven" />
-  <!-- Resources -->
-  <Resource name="ItemE" />
-</Data>

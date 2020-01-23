@@ -1,7 +1,0 @@
-digraph G {
-	graph [bb="0,0,135.19,36"];
-	node [label="\N"];
-	"Some\Initial\Path"	 [height=0.5,
-		pos="67.594,18",
-		width=1.8776];
-}
