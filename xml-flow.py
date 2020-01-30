@@ -1,17 +1,22 @@
 import xml.etree.ElementTree as ET
 import os
 import pandas as pd
-from pathlib import Path
 import networkx as nx
-import matplotlib.pyplot as pyplot
+from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
+import pylab as plt
 import pygraphviz as pgv
 
 
 # globalPath = '/home/tom/PycharmProjects/XMLFlow/test_env'
-globalPath = "/home/tom/Projects/Scripting/Personal/UnusedTextures/Data/Models"
+globalPath = "/home/tom/Projects/Scripting/Data"
 source = []
 target = []
 link = []
+
+if os.path.exists(globalPath):
+    print('Valid')
+else:
+    print('Invalid')
 
 # Build a base for the file structure to be translated into a dataframe
 directories = []
@@ -19,14 +24,15 @@ contents = []
 types = []
 
 for root, dirs, files in os.walk(globalPath):
-    for dir in dirs:
+    for d in dirs:
         directories.append(root)
-        contents.append(os.path.join(root, dir))
+        contents.append(os.path.join(root, d))
         types.append("Directory")
-    for file in files:
+    for f in files:
         directories.append(root)
-        contents.append(os.path.join(root, file))
+        contents.append(os.path.join(root, f))
         types.append("File")
+
 
 # Dictionary to be imported into Pandas
 d_tree = {"Directory": directories, "Content": contents, "Type": types}
@@ -35,18 +41,26 @@ df_tree = pd.DataFrame(data=d_tree)
 print(df_tree)
 
 
-g = nx.DiGraph()
+G = nx.DiGraph()
 
 for i, col in df_tree.iterrows():
-    g.add_edge(col[0], col[1], attr_dict=col[2:].to_dict())
+    G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict())
 
-print(f"Number of edges: {g.number_of_edges()}")
-print(f"Number of nodes: {g.number_of_nodes()}")
+print(f"Number of edges: {G.number_of_edges()}")
+print(f"Number of nodes: {G.number_of_nodes()}")
+
+G.graph["graph"] = {"size": "8, 6"}
 
 G = nx.gn_graph(300)
 A = nx.nx_agraph.to_agraph(G)
-# A.graph_attr["size"] = "8, 6"
-A.draw("filegraph.png", prog="twopi")
+A.layout('fdp')
+A.draw("filegraph.png")
+
+# g = nx.complete_graph(20)
+# A = to_agraph(g)
+# A.layout('circo')
+# A.draw('filegraph.png')
+
 
 
 """
