@@ -13,10 +13,6 @@ source = []
 target = []
 link = []
 
-if os.path.exists(globalPath):
-    print('Valid')
-else:
-    print('Invalid')
 
 # Build a base for the file structure to be translated into a dataframe
 directories = []
