@@ -34,29 +34,52 @@ for root, dirs, files in os.walk(globalPath):
 d_tree = {"Directory": directories, "Content": contents, "Type": types}
 
 df_tree = pd.DataFrame(data=d_tree)
+df_tree = df_tree.iloc[0:100, :]
 print(df_tree)
 
 
 G = nx.DiGraph()
 
+root_node = df_tree.iloc[0, 0]
+G.add_node(root_node, rank=0, shape="box", label=root_node.split("/").pop())
+
 for i, col in df_tree.iterrows():
+
+    # Create edges
     G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict())
+
+    # Create nodes
+    node_label = col[1].split("/").pop()
+
+    def style(directory, file):
+        if col[2] == "Directory":
+            return directory
+        else:
+            return file
+
+    G.add_node(
+        col[1],
+        label=node_label,
+        style="filled",
+        color=style("/brbg4/4", "/brbg4/1"),
+        fillcolor=style("/brbg4/3", "/brbg4/2"),
+    )
 
 print(f"Number of edges: {G.number_of_edges()}")
 print(f"Number of nodes: {G.number_of_nodes()}")
 
-G.graph["graph"] = {"size": "8, 6"}
+# G.graph["graph"] = {'rankdir': 'TD'}
+G.graph["node"] = {"shape": "box"}
 
-G = nx.gn_graph(300)
+# G = nx.complete_graph(30)
 A = nx.nx_agraph.to_agraph(G)
-A.layout('fdp')
+A.layout("fdp")
 A.draw("filegraph.png")
 
 # g = nx.complete_graph(20)
 # A = to_agraph(g)
 # A.layout('circo')
 # A.draw('filegraph.png')
-
 
 
 """
