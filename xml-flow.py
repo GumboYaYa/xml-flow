@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import networkx as nx
 from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
-import pylab as plt
 import pygraphviz as pgv
 
 
@@ -20,6 +19,8 @@ contents = []
 types = []
 
 for root, dirs, files in os.walk(globalPath):
+    root = root[29:] # TODO: Synchronizing the paths in both dataframes
+    # print(root_short)
     for d in dirs:
         directories.append(root)
         contents.append(os.path.join(root, d))
@@ -39,6 +40,10 @@ print(df_tree)
 
 
 G = nx.DiGraph()
+
+################################
+# Build file structure         #
+################################
 
 root_node = df_tree.iloc[0, 0]
 G.add_node(root_node, rank=0, shape="box", label=root_node.split("/").pop())
@@ -68,21 +73,10 @@ for i, col in df_tree.iterrows():
 print(f"Number of edges: {G.number_of_edges()}")
 print(f"Number of nodes: {G.number_of_nodes()}")
 
-# G.graph["graph"] = {'rankdir': 'TD'}
-G.graph["node"] = {"shape": "box"}
+################################
+# Build XML structure          #
+################################
 
-# G = nx.complete_graph(30)
-A = nx.nx_agraph.to_agraph(G)
-A.layout("fdp")
-A.draw("filegraph.png")
-
-# g = nx.complete_graph(20)
-# A = to_agraph(g)
-# A.layout('circo')
-# A.draw('filegraph.png')
-
-
-"""
 def get_files(path, ext):
     lst = []
     for root, dirs, files in os.walk(path):
@@ -97,8 +91,8 @@ def get_data(files, tag, attr):
         tree = ET.parse(file)
         root = tree.getroot()
         for item in root.iter(tag):
-            source.append("." + file[len(globalPath) :])
-            target.append(item.attrib.get(attr))
+            source.append("Data" + file[len(globalPath) :])
+            target.append(item.attrib.get(attr)) #TODO: Convert \ to /
             link.append(tag)
 
     return {"Source": source, "Target": target, "Link": link}
@@ -111,34 +105,16 @@ d_rsrc = get_data(xmls, "Resource", "name")
 
 df = pd.DataFrame(data=d_dpdy)
 
-print(df)
-
-g = nx.DiGraph()
+print(df.iloc[0, :])
 
 for i, col in df.iterrows():
-    g.add_edge(col[0], col[1], attr_dict=col[2:].to_dict())
-
-# node_color = []
-# for i, col in df.iterrows():
-#     if col[2] == 'Dependency':
-#         node_color.append('orange')
-#     else:
-#         node_color.append('yellow')
+    G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict())
 
 
-print(f"Number of edges: {g.number_of_edges()}")
-print(f"Number of nodes: {g.number_of_nodes()}")
 
+# G.graph["graph"] = {'rankdir': 'TD'}
+G.graph["node"] = {"shape": "box"}
 
-# pyplot.figure(figsize=(8, 6))
-# nx.draw(g, node_size=10, node_color='orange', edge_color='grey')
-# pyplot.title('XML Map')
-# pyplot.show()
-
-# TODO: Works but needs better labeling
-# TODO: Maybe first graph the file/folder tree itself, then connect files and folders accordingly
-G = nx.gn_graph(300)
 A = nx.nx_agraph.to_agraph(G)
-# A.graph_attr["size"] = "8, 6"
-A.draw("xmlgraph.png", prog="twopi")
-"""
+A.layout("fdp")
+A.draw("filegraph.png")
