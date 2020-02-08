@@ -19,7 +19,7 @@ contents = []
 types = []
 
 for root, dirs, files in os.walk(globalPath):
-    root = root[29:] # TODO: Synchronizing the paths in both dataframes
+    root = root[29:]
     # print(root_short)
     for d in dirs:
         directories.append(root)
@@ -35,7 +35,7 @@ for root, dirs, files in os.walk(globalPath):
 d_tree = {"Directory": directories, "Content": contents, "Type": types}
 
 df_tree = pd.DataFrame(data=d_tree)
-df_tree = df_tree.iloc[0:100, :]
+df_tree = df_tree.iloc[0:300, :]
 print(df_tree)
 
 
@@ -44,7 +44,7 @@ G = nx.DiGraph()
 ################################
 # Build file structure         #
 ################################
-
+'''
 root_node = df_tree.iloc[0, 0]
 G.add_node(root_node, rank=0, shape="box", label=root_node.split("/").pop())
 
@@ -54,7 +54,8 @@ for i, col in df_tree.iterrows():
     G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict())
 
     # Create nodes
-    node_label = col[1].split("/").pop()
+    def label(column):
+        return col[column].split('/').pop()
 
     def style(directory, file):
         if col[2] == "Directory":
@@ -64,7 +65,7 @@ for i, col in df_tree.iterrows():
 
     G.add_node(
         col[1],
-        label=node_label,
+        label=label(1),
         style="filled",
         color=style("/brbg4/4", "/brbg4/1"),
         fillcolor=style("/brbg4/3", "/brbg4/2"),
@@ -72,7 +73,7 @@ for i, col in df_tree.iterrows():
 
 print(f"Number of edges: {G.number_of_edges()}")
 print(f"Number of nodes: {G.number_of_nodes()}")
-
+'''
 ################################
 # Build XML structure          #
 ################################
@@ -92,7 +93,7 @@ def get_data(files, tag, attr):
         root = tree.getroot()
         for item in root.iter(tag):
             source.append("Data" + file[len(globalPath) :])
-            target.append(item.attrib.get(attr)) #TODO: Convert \ to /
+            target.append('Data/' + item.attrib.get(attr).replace('\\', '/'))
             link.append(tag)
 
     return {"Source": source, "Target": target, "Link": link}
@@ -100,15 +101,35 @@ def get_data(files, tag, attr):
 
 xmls = get_files(globalPath, "xml")
 
-d_dpdy = get_data(xmls, "Dependency", "name")
+d_dpdy = get_data(xmls, "Dependency", "name") # TODO: Combine into one dataframe
 d_rsrc = get_data(xmls, "Resource", "name")
 
 df = pd.DataFrame(data=d_dpdy)
+df = df.iloc[0:300, :]
 
 print(df.iloc[0, :])
 
 for i, col in df.iterrows():
-    G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict())
+    G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict(), color='red')
+
+    # Create nodes
+    # TODO: Not implemented correctly
+    def label(column):
+        return col[column].split('/').pop()
+
+    def style(directory, file):
+        if col[2] == "Directory":
+            return directory
+        else:
+            return file
+
+    G.add_node(
+        col[1],
+        label=label(1),
+        style="filled",
+        color=style("/brbg4/4", "/brbg4/1"),
+        fillcolor=style("/brbg4/3", "/brbg4/2"),
+    )
 
 
 
