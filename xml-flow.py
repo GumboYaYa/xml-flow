@@ -8,6 +8,7 @@ import pygraphviz as pgv
 
 # globalPath = '/home/tom/PycharmProjects/XMLFlow/test_env'
 globalPath = "/home/tom/Projects/Scripting/Data"
+g_range = 100
 source = []
 target = []
 link = []
@@ -35,7 +36,7 @@ for root, dirs, files in os.walk(globalPath):
 d_tree = {"Directory": directories, "Content": contents, "Type": types}
 
 df_tree = pd.DataFrame(data=d_tree)
-df_tree = df_tree.iloc[0:300, :]
+df_tree = df_tree.iloc[0:g_range, :]
 print(df_tree)
 
 
@@ -44,7 +45,7 @@ G = nx.DiGraph()
 ################################
 # Build file structure         #
 ################################
-'''
+
 root_node = df_tree.iloc[0, 0]
 G.add_node(root_node, rank=0, shape="box", label=root_node.split("/").pop())
 
@@ -73,10 +74,11 @@ for i, col in df_tree.iterrows():
 
 print(f"Number of edges: {G.number_of_edges()}")
 print(f"Number of nodes: {G.number_of_nodes()}")
-'''
+
 ################################
 # Build XML structure          #
 ################################
+
 
 def get_files(path, ext):
     lst = []
@@ -93,7 +95,7 @@ def get_data(files, tag, attr):
         root = tree.getroot()
         for item in root.iter(tag):
             source.append("Data" + file[len(globalPath) :])
-            target.append('Data/' + item.attrib.get(attr).replace('\\', '/'))
+            target.append("Data/" + item.attrib.get(attr).replace("\\", "/"))
             link.append(tag)
 
     return {"Source": source, "Target": target, "Link": link}
@@ -101,27 +103,38 @@ def get_data(files, tag, attr):
 
 xmls = get_files(globalPath, "xml")
 
-d_dpdy = get_data(xmls, "Dependency", "name") # TODO: Combine into one dataframe
+d_dpdy = get_data(xmls, "Dependency", "name")  # TODO: Combine into one dataframe
 d_rsrc = get_data(xmls, "Resource", "name")
+d = {**d_dpdy, **d_rsrc}
 
-df = pd.DataFrame(data=d_dpdy)
-df = df.iloc[0:300, :]
+df = pd.DataFrame(d)
+df = df.iloc[0:g_range, :]
 
-print(df.iloc[0, :])
+print(len(d["Source"]))
+print(df)
+# print(df.iloc[0, :])
 
 for i, col in df.iterrows():
-    G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict(), color='red')
+    G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict(), color="red")
 
     # Create nodes
     # TODO: Not implemented correctly
     def label(column):
-        return col[column].split('/').pop()
+        return col[column].split("/").pop()
 
     def style(directory, file):
-        if col[2] == "Directory":
+        if col[2] == "Dependency":
             return directory
         else:
             return file
+
+    G.add_node(
+        col[0],
+        label=label(0),
+        style="filled",
+        color=style("/brbg4/4", "/brbg4/1"),
+        fillcolor=style("/brbg4/3", "/brbg4/2"),
+    )
 
     G.add_node(
         col[1],
@@ -130,7 +143,6 @@ for i, col in df.iterrows():
         color=style("/brbg4/4", "/brbg4/1"),
         fillcolor=style("/brbg4/3", "/brbg4/2"),
     )
-
 
 
 # G.graph["graph"] = {'rankdir': 'TD'}
