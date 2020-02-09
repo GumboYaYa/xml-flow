@@ -6,6 +6,11 @@ from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
 import pygraphviz as pgv
 
 
+################################
+# Build Tables                 #
+################################
+
+
 # globalPath = '/home/tom/PycharmProjects/XMLFlow/test_env'
 globalPath = "/home/tom/Projects/Scripting/Data"
 g_range = 100
@@ -40,11 +45,49 @@ df_tree = df_tree.iloc[0:g_range, :]
 print(df_tree)
 
 
-G = nx.DiGraph()
+
+def get_files(path, ext):
+    lst = []
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if file.endswith("." + ext):
+                lst.append(os.path.join(root, file))
+    return lst
+
+def get_data(files, tag, attr):
+    for file in files:
+        tree = ET.parse(file)
+        root = tree.getroot()
+        for item in root.iter(tag):
+            source.append("Data" + file[len(globalPath) :])
+            target.append("Data/" + item.attrib.get(attr).replace("\\", "/"))
+            link.append(tag)
+
+    return {"Source": source, "Target": target, "Link": link}
+
+
+xmls = get_files(globalPath, "xml")
+
+d_dpdy = get_data(xmls, "Dependency", "name")  # TODO: Combine into one dataframe
+d_rsrc = get_data(xmls, "Resource", "name")
+d = {**d_dpdy, **d_rsrc}
+
+df = pd.DataFrame(d)
+df = df.iloc[0:g_range, :]
+
+print(len(d["Source"]))
+print(df)
+# print(df.iloc[0, :])
+
 
 ################################
-# Build file structure         #
+# Build Graph                  #
 ################################
+
+
+G = nx.DiGraph()
+
+# Build file structure graph   #
 
 root_node = df_tree.iloc[0, 0]
 G.add_node(root_node, rank=0, shape="box", label=root_node.split("/").pop())
@@ -75,50 +118,12 @@ for i, col in df_tree.iterrows():
 print(f"Number of edges: {G.number_of_edges()}")
 print(f"Number of nodes: {G.number_of_nodes()}")
 
-################################
-# Build XML structure          #
-################################
-
-
-def get_files(path, ext):
-    lst = []
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            if file.endswith("." + ext):
-                lst.append(os.path.join(root, file))
-    return lst
-
-
-def get_data(files, tag, attr):
-    for file in files:
-        tree = ET.parse(file)
-        root = tree.getroot()
-        for item in root.iter(tag):
-            source.append("Data" + file[len(globalPath) :])
-            target.append("Data/" + item.attrib.get(attr).replace("\\", "/"))
-            link.append(tag)
-
-    return {"Source": source, "Target": target, "Link": link}
-
-
-xmls = get_files(globalPath, "xml")
-
-d_dpdy = get_data(xmls, "Dependency", "name")  # TODO: Combine into one dataframe
-d_rsrc = get_data(xmls, "Resource", "name")
-d = {**d_dpdy, **d_rsrc}
-
-df = pd.DataFrame(d)
-df = df.iloc[0:g_range, :]
-
-print(len(d["Source"]))
-print(df)
-# print(df.iloc[0, :])
+# Build XML Graph              #
 
 for i, col in df.iterrows():
     G.add_edge(col[0], col[1], attr_dict=col[2:].to_dict(), color="red")
 
     # Create nodes
-    # TODO: Not implemented correctly
     def label(column):
         return col[column].split("/").pop()
 
