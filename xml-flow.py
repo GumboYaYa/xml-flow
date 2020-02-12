@@ -14,9 +14,6 @@ import pygraphviz as pgv
 # globalPath = '/home/tom/PycharmProjects/XMLFlow/test_env'
 globalPath = "/home/tom/Projects/Scripting/Data"
 g_range = 100
-source = []
-target = []
-link = []
 
 
 # Parse file structure
@@ -52,43 +49,50 @@ class GetData:
         return df
 
     def get_xmls(self):
-        pass
 
-data_files = GetData(globalPath)
-print(data_files.get_files())
+        source = []
+        target = []
+        link = []
 
+        def get_files(path, ext):
+            lst = []
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    if file.endswith("." + ext):
+                        lst.append(os.path.join(root, file))
+            return lst
 
+        def get_data(files, tag, attr):
+            for file in files:
+                tree = ET.parse(file)
+                root = tree.getroot()
+                for item in root.iter(tag):
+                    source.append("Data" + file[len(globalPath) :])
+                    target.append("Data/" + item.attrib.get(attr).replace("\\", "/"))
+                    link.append(tag)
 
-def get_files(path, ext):
-    lst = []
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            if file.endswith("." + ext):
-                lst.append(os.path.join(root, file))
-    return lst
-
-def get_data(files, tag, attr):
-    for file in files:
-        tree = ET.parse(file)
-        root = tree.getroot()
-        for item in root.iter(tag):
-            source.append("Data" + file[len(globalPath) :])
-            target.append("Data/" + item.attrib.get(attr).replace("\\", "/"))
-            link.append(tag)
-
-    return {"Source": source, "Target": target, "Link": link}
+            return {"Source": source, "Target": target, "Link": link}
 
 
-xmls = get_files(globalPath, "xml")
+        xmls = get_files(globalPath, "xml")
 
-d_dpdy = get_data(xmls, "Dependency", "name")  # TODO: Combine into one dataframe
-d_rsrc = get_data(xmls, "Resource", "name")
-d = {**d_dpdy, **d_rsrc}
+        d_dpdy = get_data(xmls, "Dependency", "name")  # TODO: Combine into one dataframe
+        d_rsrc = get_data(xmls, "Resource", "name")
+        d = {**d_dpdy, **d_rsrc}
 
-df = pd.DataFrame(d)
-df = df.iloc[0:g_range, :]
+        df = pd.DataFrame(d)
+        # df = df.iloc[0:g_range, :]
 
-print(df)
+        return df
+
+
+data_files = GetData(globalPath).get_files()
+print(data_files)
+
+data_xmls = GetData(globalPath).get_xmls()
+print(data_xmls)
+
+
 # print(df.iloc[0, :])
 
 
