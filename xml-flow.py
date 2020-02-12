@@ -19,30 +19,43 @@ target = []
 link = []
 
 
-# Build a base for the file structure to be translated into a dataframe
-directories = []
-contents = []
-types = []
+# Parse file structure
 
-for root, dirs, files in os.walk(globalPath):
-    root = root[29:]
-    # print(root_short)
-    for d in dirs:
-        directories.append(root)
-        contents.append(os.path.join(root, d))
-        types.append("Directory")
-    for f in files:
-        directories.append(root)
-        contents.append(os.path.join(root, f))
-        types.append("File")
+class GetData:
 
+    def __init__(self, base_path):
+        self.base_path = base_path
 
-# Dictionary to be imported into Pandas
-d_tree = {"Directory": directories, "Content": contents, "Type": types}
+    def get_files(self):
 
-df_tree = pd.DataFrame(data=d_tree)
-df_tree = df_tree.iloc[0:g_range, :]
-print(df_tree)
+        directories = []
+        contents = []
+        types = []
+
+        for root, dirs, files in os.walk(self.base_path):
+            root = root[29:]
+            for d in dirs:
+                directories.append(root)
+                contents.append(os.path.join(root, d))
+                types.append("Directory")
+            for f in files:
+                directories.append(root)
+                contents.append(os.path.join(root, f))
+                types.append("File")
+
+            # Dictionary to be imported into Pandas
+        d = {"Directory": directories, "Content": contents, "Type": types}
+
+        df = pd.DataFrame(d)
+        # df = df.iloc[range_start:range_end, :]
+
+        return df
+
+    def get_xmls(self):
+        pass
+
+data_files = GetData(globalPath)
+print(data_files.get_files())
 
 
 
@@ -75,7 +88,6 @@ d = {**d_dpdy, **d_rsrc}
 df = pd.DataFrame(d)
 df = df.iloc[0:g_range, :]
 
-print(len(d["Source"]))
 print(df)
 # print(df.iloc[0, :])
 
